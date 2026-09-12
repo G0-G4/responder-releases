@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Responder — автоответы на отзывы Wildberries</title>
+<meta name="description" content="Responder сам находит новые отзывы на Wildberries, готовит ответ по вашим правилам и отправляет его. Сейчас — закрытое тестирование.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F7F4EE;
+    --surface: #FFFFFF;
+    --ink: #211F36;
+    --ink-soft: #312D4E;
+    --plum: #5B3A8E;
+    --plum-soft: #EFE7F7;
+    --gold: #D89A3C;
+    --gold-soft: #FBF0DD;
+    --success: #2E7D5B;
+    --success-soft: #E4F3EC;
+    --muted: #6F6B80;
+    --border: #E4E0D6;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  p{
+    line-height: 1.6;
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+  }
+  .wrap{
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  a{ color: inherit; }
+  .font-display{
+    font-family: "Fraunces", Georgia, "Times New Roman", serif;
+    font-optical-sizing: auto;
+  }
+  .eyebrow{
+    font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- top bar ---------- */
+  header{ padding: 32px 0 0; }
+  header .wrap{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+  }
+  .wordmark{
+    font-weight:600;
+    font-size:1.3rem;
+    color: var(--ink);
+  }
+  .wordmark-eyebrow{ margin-top:2px; }
+  .nav-contact{
+    font-weight:500;
+    font-size:0.95rem;
+    padding:10px 20px;
+    border:1px solid var(--ink);
+    border-radius:10px;
+    text-decoration:none;
+    color: var(--ink);
+    transition: background-color .15s ease, color .15s ease;
+  }
+  .nav-contact:hover{ background: var(--ink); color: var(--paper); }
+
+  /* ---------- hero ---------- */
+  .hero{ padding: 72px 0 96px; }
+  .hero .wrap{
+    display:grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 56px;
+    align-items:center;
+  }
+  h1{
+    font-weight:600;
+    font-size: clamp(2rem, 3.6vw, 2.75rem);
+    line-height:1.25;
+    margin: 0 0 22px;
+    max-width: 17ch;
+    color: var(--ink);
+  }
+  .lede{
+    font-size:1.1rem;
+    max-width: 46ch;
+    margin: 0 0 34px;
+  }
+  .cta-row{ display:flex; gap:14px; flex-wrap:wrap; }
+  .btn{
+    display:inline-block;
+    font-weight:500;
+    font-size:1rem;
+    text-decoration:none;
+    padding:13px 24px;
+    border-radius:10px;
+  }
+  .btn-primary{ background: var(--plum); color: var(--paper); }
+  .btn-primary:hover{ background:#4c3178; }
+  .btn-ghost{ border:1px solid var(--border); color: var(--ink); }
+  .btn-ghost:hover{ border-color: var(--ink); }
+
+  /* ---------- demo card: review -> reply ---------- */
+  .demo{
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding: 22px;
+    box-shadow: 0 1px 2px rgba(33,31,54,0.04);
+  }
+  .demo-label{ font-size:0.85rem; color: var(--muted); margin: 0 0 14px; }
+  .review-card{
+    background: var(--paper);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    margin-bottom: 14px;
+  }
+  .star-picker{ display:flex; gap:4px; margin-bottom:10px; }
+  .star-btn{
+    background:none;
+    border:none;
+    padding:2px;
+    font-size:1.05rem;
+    line-height:1;
+    color: var(--border);
+    cursor:pointer;
+  }
+  .star-btn.filled{ color: var(--gold); }
+  .star-btn:focus-visible{ outline:2px solid var(--plum); outline-offset:2px; border-radius:4px; }
+  .review-input{
+    display:block;
+    width:100%;
+    border:none;
+    background:none;
+    resize:vertical;
+    font-family:inherit;
+    font-size:0.98rem;
+    color: var(--ink-soft);
+    line-height:1.55;
+    padding:0;
+    min-height:52px;
+  }
+  .review-input:focus{ outline:none; color: var(--ink); }
+  .review-input::placeholder{ color: var(--muted); }
+  .demo-actions{ display:flex; justify-content:flex-end; margin: 4px 0 14px; }
+  .btn-demo{
+    background: var(--surface);
+    border:1px solid var(--plum);
+    color: var(--plum);
+    font-weight:500;
+    font-size:0.9rem;
+    padding:9px 18px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .btn-demo:hover{ background: var(--plum-soft); }
+  .btn-demo:focus-visible{ outline:2px solid var(--plum); outline-offset:2px; }
+  .flow-arrow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color: var(--muted);
+    font-size:0.85rem;
+    margin: 10px 2px;
+  }
+  .flow-arrow::before, .flow-arrow::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background: var(--border);
+  }
+  .reply-card{
+    background: var(--success-soft);
+    border:1px solid #c7e2d3;
+    border-radius:12px;
+    padding:16px 18px;
+    min-height: 76px;
+  }
+  .reply-text{ font-size:0.98rem; color: var(--ink); margin:0 0 10px; }
+  .sent-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:0.8rem;
+    font-weight:500;
+    color: var(--success);
+  }
+  .sent-tag::before{
+    content:"";
+    width:6px; height:6px;
+    border-radius:50%;
+    background: var(--success);
+  }
+
+  /* ---------- sections ---------- */
+  section{ padding: 60px 0; border-top:1px solid var(--border); }
+  h2{
+    font-weight:600;
+    font-size:1.5rem;
+    margin: 0 0 32px;
+    max-width: 24ch;
+    color: var(--ink);
+  }
+
+  .feature-list{
+    list-style:none;
+    margin:0; padding:0;
+    max-width: 640px;
+  }
+  .feature-list li{ padding: 20px 0; border-top:1px solid var(--border); }
+  .feature-list li:last-child{ border-bottom:1px solid var(--border); }
+  .feature-list p{ margin:0; }
+  .feature-list strong{
+    font-weight:600;
+    display:block;
+    margin-bottom:6px;
+    font-size:1.05rem;
+    color: var(--ink);
+  }
+
+  .pilot{
+    background: var(--ink);
+    border-radius: 20px;
+    padding: 48px;
+  }
+  .pilot h2{ margin-bottom:14px; color: var(--paper); }
+  .pilot p{ max-width: 52ch; margin: 0 0 30px; color: rgba(247,244,238,0.72); }
+  .contact-list{
+    list-style:none;
+    margin:0; padding:0;
+    display:flex;
+    gap:32px;
+    flex-wrap:wrap;
+  }
+  .contact-list a{
+    text-decoration:none;
+    font-weight:600;
+    font-size:1.1rem;
+    color: var(--paper);
+    border-bottom: 1px solid var(--gold);
+    padding-bottom:3px;
+  }
+  .contact-list a:hover{ color: var(--gold-soft); }
+  .contact-kind{
+    display:block;
+    color: rgba(247,244,238,0.5);
+    margin-bottom:4px;
+  }
+
+  footer{ padding: 40px 0 56px; }
+  footer p{ font-size:0.85rem; color: var(--muted); }
+  footer a{ color: var(--muted); text-decoration:underline; }
+
+  @media (max-width: 760px){
+    .hero .wrap{ grid-template-columns: 1fr; }
+    .hero{ padding: 48px 0 64px; }
+    .pilot{ padding: 32px 22px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <div class="wordmark font-display">Responder</div>
+      <div class="eyebrow wordmark-eyebrow">Automation Console</div>
+    </div>
+    <a class="nav-contact" href="#pilot">Написать</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <h1 class="font-display">Автоответы на отзывы Wildberries</h1>
+      <p class="lede">Responder сам находит новые отзывы, готовит ответ по вашим правилам и отправляет его — без вашего участия.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#pilot">Попробовать в тесте</a>
+        <a class="btn btn-ghost" href="https://github.com/G0-G4/responder-releases/releases">Смотреть релизы</a>
+      </div>
+    </div>
+    <div class="demo">
+      <p class="demo-label">Новый отзыв на Wildberries</p>
+      <div class="review-card">
+        <div class="star-picker" id="starPicker"></div>
+        <textarea class="review-input" id="reviewInput" rows="2" maxlength="300"
+          placeholder="Оставьте отзыв пустым, чтобы увидеть ответ без комментария">Заказывала уже третий раз, всё приходит быстро и как на фото. Спасибо!</textarea>
+      </div>
+      <div class="demo-actions">
+        <button type="button" class="btn-demo" id="generateBtn">Сгенерировать ответ</button>
+      </div>
+      <div class="flow-arrow">Responder готовит ответ</div>
+      <div class="reply-card">
+        <p class="reply-text" id="replyText"></p>
+        <span class="sent-tag">Так может выглядеть автоматический ответ</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2 class="font-display">Что делает</h2>
+    <ul class="feature-list">
+      <li>
+        <strong>Сам находит новые отзывы</strong>
+        <p>Сейчас поддерживается Wildberries — Responder регулярно проверяет отзывы по расписанию, без вашего участия.</p>
+      </li>
+      <li>
+        <strong>Отвечает по вашим правилам, с вариациями</strong>
+        <p>Вы задаёте варианты ответа под оценку и наличие комментария — ответы не выглядят как под копирку.</p>
+      </li>
+      <li>
+        <strong>Пропускает через фильтры</strong>
+        <p>Например, можно не отвечать автоматически на отзывы с низкой оценкой — их проще обработать самим.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section id="pilot">
+  <div class="wrap">
+    <div class="pilot">
+      <h2 class="font-display">Сейчас — закрытое тестирование</h2>
+      <p>Программа дорабатывается и пока доступна по запросу. Если хотите попробовать Responder на своём магазине — напишите, и я вышлю доступ.</p>
+      <ul class="contact-list">
+        <li>
+          <span class="contact-kind eyebrow">Почта</span>
+          <a href="mailto:goscha-grishenkov@yandex.ru">goscha-grishenkov@yandex.ru</a>
+        </li>
+        <li>
+          <span class="contact-kind eyebrow">Telegram</span>
+          <a href="https://t.me/G0_Sha">@G0_Sha</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Готовые сборки — на странице <a href="https://github.com/G0-G4/responder-releases/releases">Releases</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // Portable JS re-implementation of the probabilistic answer generator's
+  // compose() (plugins/answerGenerators/probabilistic/compose.go) - same
+  // selection logic (greeting + rating/comment-dependent body, with a
+  // chance of a rating-specific "bonus" phrase, plus an optional extra
+  // remark, + goodbye), with a small demo phrase bank standing in for a
+  // real config. No $name$ support here - the demo has no name field.
+  var CFG = {
+    bonusChance: 0.3,
+    extraChance: 0.5,
+    greetings: ["Добрый день!", "Здравствуйте!", "Спасибо, что написали!"],
+    goodbye: ["Хорошего дня!", "Будем рады видеть вас снова!", "Ждём ваш следующий заказ!"],
+    positive: {
+      withComment: ["Очень рады, что всё понравилось!", "Спасибо за такой тёплый отзыв!", "Приятно это слышать!"],
+      noComment: ["Спасибо за высокую оценку!", "Рады, что всё устроило!"]
+    },
+    neutral: {
+      withComment: ["Спасибо за отзыв, учтём ваши замечания.", "Спасибо, что поделились впечатлениями."],
+      noComment: ["Спасибо за оценку."]
+    },
+    negative: [
+      "Жаль, что не всё понравилось — передадим ваш отзыв в отдел качества.",
+      "Приносим извинения за неудобства."
+    ],
+    extraPositive: {
+      main: ["Уже готовим для вас новые модели.", "Скоро появятся новые поступления."],
+      recommendations: ["Оставайтесь с нами!", "Расскажите друзьям о находке!"]
+    },
+    extraNegative: ["Если хотите обсудить детали — напишите нам напрямую."],
+    ratingSpecific: [
+      { rating: "5", templates: ["Пять звёзд — лучшая награда для нас!", "Спасибо, что оценили на все пять!"] }
+    ]
+  };
+
+  function pickRandom(arr){
+    if (!arr || arr.length === 0) return null;
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+  function selectByComment(group, hasComment){
+    if (hasComment){
+      if (group.withComment && group.withComment.length) return group.withComment;
+      return group.noComment || [];
+    }
+    if (group.noComment && group.noComment.length) return group.noComment;
+    return group.withComment || [];
+  }
+  function ratingSpan(rating){
+    if (rating === "default") return null;
+    if (rating.indexOf("-") !== -1){
+      var parts = rating.split("-").map(Number);
+      return [Math.min(parts[0], parts[1]), Math.max(parts[0], parts[1])];
+    }
+    var n = Number(rating);
+    return isNaN(n) ? null : [n, n];
+  }
+  function selectByRating(entries, star){
+    var starStr = String(star), i;
+    for (i = 0; i < entries.length; i++) if (entries[i].rating === starStr) return entries[i];
+    for (i = 0; i < entries.length; i++){
+      var span = ratingSpan(entries[i].rating);
+      if (span && star >= span[0] && star <= span[1]) return entries[i];
+    }
+    for (i = 0; i < entries.length; i++) if (entries[i].rating === "default") return entries[i];
+    return null;
+  }
+  function bonusPhrase(entries, star){
+    var entry = selectByRating(entries || [], star);
+    if (!entry || !entry.templates || !entry.templates.length) return null;
+    return pickRandom(entry.templates);
+  }
+  function composeTierBody(cfg, star, baseVariants){
+    if (Math.random() < cfg.bonusChance){
+      var bonus = bonusPhrase(cfg.ratingSpecific, star);
+      if (bonus) return bonus;
+    }
+    return pickRandom(baseVariants);
+  }
+  function composePositiveExtra(ep){
+    var main = pickRandom(ep.main), rec = pickRandom(ep.recommendations);
+    if (!main || !rec) return null;
+    return main + " " + rec;
+  }
+  function compose(cfg, star, hasComment){
+    var parts = [];
+    var greeting = pickRandom(cfg.greetings);
+    if (!greeting) return null;
+    parts.push(greeting);
+
+    if (star >= 4){
+      var body = composeTierBody(cfg, star, selectByComment(cfg.positive, hasComment));
+      if (!body) return null;
+      parts.push(body);
+      if (hasComment && Math.random() < cfg.extraChance){
+        var extra = composePositiveExtra(cfg.extraPositive);
+        if (extra) parts.push(extra);
+      }
+    } else if (star === 3){
+      var neutralBody = pickRandom(selectByComment(cfg.neutral, hasComment));
+      if (!neutralBody) return null;
+      parts.push(neutralBody);
+    } else {
+      var negBody = composeTierBody(cfg, star, cfg.negative);
+      if (!negBody) return null;
+      parts.push(negBody);
+      if (hasComment && cfg.extraNegative && cfg.extraNegative.length){
+        var negExtra = pickRandom(cfg.extraNegative);
+        if (negExtra) parts.push(negExtra);
+      }
+    }
+
+    var goodbye = pickRandom(cfg.goodbye);
+    if (!goodbye) return null;
+    parts.push(goodbye);
+
+    return parts.join(" ");
+  }
+
+  var picker = document.getElementById("starPicker");
+  var input = document.getElementById("reviewInput");
+  var replyText = document.getElementById("replyText");
+  var generateBtn = document.getElementById("generateBtn");
+  var currentStar = 5;
+
+  function renderStars(){
+    picker.innerHTML = "";
+    for (var i = 1; i <= 5; i++){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "star-btn" + (i <= currentStar ? " filled" : "");
+      btn.textContent = "★";
+      btn.setAttribute("aria-label", i + (i === 1 ? " звезда" : (i < 5 ? " звезды" : " звёзд")));
+      btn.addEventListener("click", function(star){
+        return function(){ currentStar = star; renderStars(); };
+      }(i));
+      picker.appendChild(btn);
+    }
+  }
+
+  function generate(){
+    var hasComment = input.value.trim().length > 0;
+    var answer = compose(CFG, currentStar, hasComment);
+    replyText.textContent = answer || "Добавьте хотя бы одну фразу в настройках, чтобы сгенерировать ответ.";
+  }
+
+  renderStars();
+  generate();
+  generateBtn.addEventListener("click", generate);
+})();
+</script>
+</body>
+</html>
